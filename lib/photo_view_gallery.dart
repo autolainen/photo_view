@@ -7,7 +7,6 @@ import 'package:photo_view/photo_view.dart'
         PhotoViewImageTapDownCallback,
         PhotoViewImageTapUpCallback,
         ScaleStateCycle;
-
 import 'package:photo_view/src/controller/photo_view_controller.dart';
 import 'package:photo_view/src/controller/photo_view_scalestate_controller.dart';
 import 'package:photo_view/src/core/photo_view_gesture_detector.dart';
@@ -260,8 +259,13 @@ class _PhotoViewGalleryState extends State<PhotoViewGallery> {
             tightMode: pageOption.tightMode,
           );
 
-    return ClipRect(
-      child: photoView,
+    return Stack(
+      children: <Widget>[
+        ClipRect(
+          child: photoView,
+        ),
+        if (pageOption.imageDescription != null) pageOption.imageDescription
+      ],
     );
   }
 
@@ -282,6 +286,7 @@ class PhotoViewGalleryPageOptions {
   PhotoViewGalleryPageOptions({
     Key key,
     @required this.imageProvider,
+    this.imageDescription,
     this.heroAttributes,
     this.minScale,
     this.maxScale,
@@ -301,6 +306,7 @@ class PhotoViewGalleryPageOptions {
   PhotoViewGalleryPageOptions.customChild({
     @required this.child,
     @required this.childSize,
+    this.imageDescription,
     this.heroAttributes,
     this.minScale,
     this.maxScale,
@@ -319,6 +325,8 @@ class PhotoViewGalleryPageOptions {
 
   /// Mirror to [PhotoView.imageProvider]
   final ImageProvider imageProvider;
+
+  final Widget imageDescription;
 
   /// Mirror to [PhotoView.heroAttributes]
   final PhotoViewHeroAttributes heroAttributes;
