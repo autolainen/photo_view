@@ -2,11 +2,7 @@ library photo_view_gallery;
 
 import 'package:flutter/widgets.dart';
 import 'package:photo_view/photo_view.dart'
-    show
-        PhotoView,
-        PhotoViewImageTapDownCallback,
-        PhotoViewImageTapUpCallback,
-        ScaleStateCycle;
+    show ErrorCallback, PhotoView, PhotoViewImageTapDownCallback, PhotoViewImageTapUpCallback, ScaleStateCycle;
 import 'package:photo_view/src/controller/photo_view_controller.dart';
 import 'package:photo_view/src/controller/photo_view_scalestate_controller.dart';
 import 'package:photo_view/src/core/photo_view_gesture_detector.dart';
@@ -241,6 +237,8 @@ class _PhotoViewGalleryState extends State<PhotoViewGallery> {
             key: ObjectKey(index),
             imageProvider: pageOption.imageProvider,
             loadingChild: widget.loadingChild,
+            errorChild: pageOption.errorChild,
+            errorCallback: pageOption.errorCallback,
             backgroundDecoration: widget.backgroundDecoration,
             controller: pageOption.controller,
             scaleStateController: pageOption.scaleStateController,
@@ -287,6 +285,8 @@ class PhotoViewGalleryPageOptions {
     Key key,
     @required this.imageProvider,
     this.imageDescription,
+    this.errorChild,
+    this.errorCallback,
     this.heroAttributes,
     this.minScale,
     this.maxScale,
@@ -307,6 +307,8 @@ class PhotoViewGalleryPageOptions {
     @required this.child,
     @required this.childSize,
     this.imageDescription,
+    this.errorChild,
+    this.errorCallback,
     this.heroAttributes,
     this.minScale,
     this.maxScale,
@@ -327,6 +329,10 @@ class PhotoViewGalleryPageOptions {
   final ImageProvider imageProvider;
 
   final Widget imageDescription;
+
+  final Widget errorChild;
+
+  final ErrorCallback errorCallback;
 
   /// Mirror to [PhotoView.heroAttributes]
   final PhotoViewHeroAttributes heroAttributes;

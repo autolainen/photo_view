@@ -3,7 +3,6 @@ library photo_view;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-
 import 'package:photo_view/src/controller/photo_view_controller.dart';
 import 'package:photo_view/src/controller/photo_view_scalestate_controller.dart';
 import 'package:photo_view/src/core/photo_view_core.dart';
@@ -19,6 +18,8 @@ export 'src/core/photo_view_gesture_detector.dart'
 export 'src/photo_view_computed_scale.dart';
 export 'src/photo_view_scale_state.dart';
 export 'src/utils/photo_view_hero_attributes.dart';
+
+typedef ErrorCallback = void Function(Object error);
 
 /// A [StatefulWidget] that contains all the photo view rendering elements.
 ///
@@ -227,6 +228,8 @@ class PhotoView extends StatefulWidget {
     Key key,
     @required this.imageProvider,
     this.loadingChild,
+    this.errorChild,
+    this.errorCallback,
     this.backgroundDecoration,
     this.gaplessPlayback = false,
     this.heroAttributes,
@@ -257,6 +260,8 @@ class PhotoView extends StatefulWidget {
   PhotoView.customChild({
     Key key,
     @required this.child,
+    this.errorChild,
+    this.errorCallback,
     this.childSize,
     this.backgroundDecoration,
     this.heroAttributes,
@@ -286,6 +291,10 @@ class PhotoView extends StatefulWidget {
   /// While [imageProvider] is not resolved, [loadingChild] is build by [PhotoView]
   /// into the screen, by default it is a centered [CircularProgressIndicator]
   final Widget loadingChild;
+
+  final Widget errorChild;
+
+  final ErrorCallback errorCallback;
 
   /// Changes the background behind image, defaults to `Colors.black`.
   final Decoration backgroundDecoration;
@@ -395,9 +404,11 @@ class _PhotoViewState extends State<PhotoView> {
           synchronousCall ? setupCallback() : setState(setupCallback);
         }
       }
+    }, onError: (e, s) {
+      completer.completeError(e, s);
     });
     stream.addListener(listener);
-    completer.future.then((_) {
+    completer.future.whenComplete(() {
       stream.removeListener(listener);
     });
     return completer.future;
@@ -531,10 +542,37 @@ class _PhotoViewState extends State<PhotoView> {
         builder: (BuildContext context, AsyncSnapshot<ImageInfo> info) {
           if (info.hasData) {
             return _buildWrapperImage(context, constraints);
+          } else if (info.hasError) {
+            if (widget.errorCallback != null) {
+              widget.errorCallback(info.error);
+            }
+            return widget.errorChild == null
+                ? _buildDefaultErrorChild(context)
+                : widget.errorChild;
           } else {
             return _buildLoading();
           }
         });
+  }
+
+  Widget _buildDefaultErrorChild(
+      BuildContext context) {
+    return GestureDetector(
+      onTapUp: widget.onTapUp == null
+          ? null
+          : (details) {
+              widget.onTapUp(context, details, widget.controller?.value);
+            },
+      onTapDown: widget.onTapDown == null
+          ? null
+          : (details) {
+        widget.onTapDown(context, details, widget.controller?.value);
+      },
+      child: Container(
+          color: Colors.transparent,
+          alignment: Alignment.center,
+          child: Icon(Icons.broken_image, color: Colors.white, size: 40)),
+    );
   }
 
   Widget _buildSync(BuildContext context, BoxConstraints constraints) {
